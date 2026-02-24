@@ -96,9 +96,10 @@ while (tariff <= 0) {
                 if (count == 0) {
                     cout << "No appliances registered yet.\n";
                 } else {
-                    for (int i = 0; i < count; i++) {
-                        appliances[i].displayAppliance(tariff);
-                    }
+                   for (int i = 0; i < count; i++) {
+    cout << "Appliance #" << i + 1 << endl;
+    appliances[i].displayAppliance(tariff);
+}
                 }
                 break;
 
@@ -152,7 +153,7 @@ while (tariff <= 0) {
         }
     }
     break;
-    
+
             case 0:
                 cout << "Exiting program...\n";
                 break;
