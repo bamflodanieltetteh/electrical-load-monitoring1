@@ -1,3 +1,0 @@
-Total Monthly Energy: 94.5 kWh
-Tariff: 70
-Total Monthly Cost: 6615
