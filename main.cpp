@@ -1,6 +1,10 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <fstream>
 using namespace std;
+
+#define MAX 100
 
 class Appliance {
     private:
@@ -53,19 +57,77 @@ class Appliance {
 double calculateMonthlyCost(double tariff) const {
     return calculateMonthlyEnergy() * tariff;
 }
+
+string getName() const {
+    return name;
+}
+
+double getPower() const {
+    return power;
+}
+
+double getHours() const {
+    return hours;
+}
+
+void setLoadedData(string n, double p, double h) {
+    name = n;
+    power = p;
+    hours = h;
+}
 };
-        
+   
+void saveToFile(Appliance appliances[], int count, double tariff) {
+    ofstream file("appliances.txt");
+
+    file << tariff << endl;
+    file << count << endl;
+
+    for (int i = 0; i < count; i++) {
+        file << appliances[i].getName() << endl;
+        file << appliances[i].getPower() << endl;
+        file << appliances[i].getHours() << endl;
+    }
+
+    file.close();
+}
+void loadFromFile(Appliance appliances[], int &count, double &tariff) {
+    ifstream file("appliances.txt");
+
+    if (!file) {
+        return; // No file yet
+    }
+
+    file >> tariff;
+    file >> count;
+    file.ignore();
+
+    for (int i = 0; i < count; i++) {
+        string name;
+        double power, hours;
+
+        getline(file, name);
+        file >> power;
+        file >> hours;
+        file.ignore();
+
+        appliances[i].setLoadedData(name, power, hours);
+    }
+
+    file.close();
+}
+
 int main() {
-    const int MAX = 10;
-    Appliance appliances[MAX];
-    int count = 0;
-    int choice;
+   Appliance appliances[MAX];
+int count = 0;
+double tariff = 0;
+int choice = 0;
+   loadFromFile(appliances, count, tariff);
 
-    double tariff = 1.5;
-
-cout << "Enter electricity tariff rate per kWh: ";
-cin >> tariff;
-
+if (tariff <= 0) {
+    cout << "Enter electricity tariff rate per kWh: ";
+    cin >> tariff;
+}
 while (tariff <= 0) {
     cout << "Tariff must be greater than 0. Enter again: ";
     cin >> tariff;
@@ -155,6 +217,7 @@ while (tariff <= 0) {
     break;
 
             case 0:
+            saveToFile(appliances, count, tariff);
                 cout << "Exiting program...\n";
                 break;
 
