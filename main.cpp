@@ -62,7 +62,14 @@ int main() {
     int choice;
 
     double tariff = 1.5;
-    
+
+cout << "Enter electricity tariff rate per kWh: ";
+cin >> tariff;
+
+while (tariff <= 0) {
+    cout << "Tariff must be greater than 0. Enter again: ";
+    cin >> tariff;
+}
     do {
         cout << "\n=== Electrical Load Monitoring System ===\n";
         cout << "1. Register Appliance\n";
