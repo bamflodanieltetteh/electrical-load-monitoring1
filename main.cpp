@@ -76,6 +76,7 @@ while (tariff <= 0) {
         cout << "2. View All Appliances\n";
         cout << "3. View Total Monthly Bill\n";
         cout << "4. System Status\n";
+        cout << "5. Remove Appliance\n";
         cout << "0. Exit\n";
         cout << "Enter choice: ";
         cin >> choice;
@@ -130,6 +131,28 @@ while (tariff <= 0) {
                 }
                 break;
 
+                case 5:
+    if (count == 0) {
+        cout << "No appliances to remove.\n";
+    } else {
+        cout << "Enter appliance number to remove (1 - " << count << "): ";
+        int removeIndex;
+        cin >> removeIndex;
+
+        if (removeIndex < 1 || removeIndex > count) {
+            cout << "Invalid appliance number.\n";
+        } else {
+            // Shift appliances left
+            for (int i = removeIndex - 1; i < count - 1; i++) {
+                appliances[i] = appliances[i + 1];
+            }
+
+            count--;
+            cout << "Appliance removed successfully.\n";
+        }
+    }
+    break;
+    
             case 0:
                 cout << "Exiting program...\n";
                 break;
