@@ -1,230 +1,236 @@
 #include <iostream>
+#include <fstream>
 #include <string>
-#include <fstream>
-#include <fstream>
 using namespace std;
 
-#define MAX 100
-
 class Appliance {
-    private:
+private:
     string name;
     double power;
     double hours;
 
-    public:
+public:
     void setAppliance() {
-        cout << "Enter appliance name: ";
         cin.ignore();
+        cout << "Enter appliance name: ";
         getline(cin, name);
 
         while (name.empty()) {
-            cout << " Name cannot be empty. Enter again: ";
+            cout << "Name cannot be empty. Enter again: ";
             getline(cin, name);
         }
 
-        cout << "Enter power rating (watts): ";
+        cout << "Enter power rating (Watts): ";
         cin >> power;
         while (power <= 0) {
-            cout << "Power must be greater than zero. Enter again: ";
-            cin>> power;
+            cout << "Power must be greater than 0: ";
+            cin >> power;
         }
 
-            cout << "Enter daily usage hours(0 - 24): ";
+        cout << "Enter daily usage hours (0-24): ";
+        cin >> hours;
+        while (hours < 0 || hours > 24) {
+            cout << "Invalid hours. Enter between 0 and 24: ";
             cin >> hours;
-            while (hours< 0|| hours >24) {
-                cout << "Invalid hours. Enter between 0 and 24: ";
-                cin >> hours;
-            }
+        }
     }
-    double calculateEnergy() const {
+
+    double calculateDailyEnergy() const {
         return (power * hours) / 1000.0;
     }
-   void displayAppliance(double tariff) const {
-    cout << "Appliance Name: " << name << endl;
-    cout << "Power Rating: " << power << " W" << endl;
-    cout << "Daily Usage: " << hours << " hours" << endl;
-    cout << "Daily Energy: " << calculateEnergy() << " kWh" << endl;
-    cout << "Monthly Energy: " << calculateMonthlyEnergy() << " kWh" << endl;
-    cout << "Monthly Cost: " 
-         << calculateMonthlyCost(tariff) << endl;
-    cout << "--------------------------------------" << endl;
-}
- double calculateMonthlyEnergy() const {
-    return calculateEnergy() * 30;
-}
 
-double calculateMonthlyCost(double tariff) const {
-    return calculateMonthlyEnergy() * tariff;
-}
+    double calculateMonthlyEnergy() const {
+        return calculateDailyEnergy() * 30;
+    }
 
-string getName() const {
-    return name;
-}
+    void display() const {
+        cout << "\nAppliance: " << name << endl;
+        cout << "Power: " << power << " W" << endl;
+        cout << "Daily Usage: " << hours << " hrs" << endl;
+        cout << "Monthly Energy: "
+             << calculateMonthlyEnergy() << " kWh" << endl;
+    }
 
-double getPower() const {
-    return power;
-}
+    string getName() const { return name; }
+    double getPower() const { return power; }
+    double getHours() const { return hours; }
 
-double getHours() const {
-    return hours;
-}
-
-void setLoadedData(string n, double p, double h) {
-    name = n;
-    power = p;
-    hours = h;
-}
+    void loadFromFile(string n, double p, double h) {
+        name = n;
+        power = p;
+        hours = h;
+    }
 };
-   
-void saveToFile(Appliance appliances[], int count, double tariff) {
+
+const int MAX = 50;
+Appliance appliances[MAX];
+int applianceCount = 0;
+double tariff = 0.0;
+
+// Save appliances to file
+void saveToFile() {
     ofstream file("appliances.txt");
-
-    file << tariff << endl;
-    file << count << endl;
-
-    for (int i = 0; i < count; i++) {
-        file << appliances[i].getName() << endl;
-        file << appliances[i].getPower() << endl;
-        file << appliances[i].getHours() << endl;
+    for (int i = 0; i < applianceCount; i++) {
+        file << appliances[i].getName() << ","
+             << appliances[i].getPower() << ","
+             << appliances[i].getHours() << endl;
     }
-
     file.close();
 }
-void loadFromFile(Appliance appliances[], int &count, double &tariff) {
+
+// Load appliances from file
+void loadFromFile() {
     ifstream file("appliances.txt");
+    string name;
+    double power, hours;
+    char comma;
 
-    if (!file) {
-        return; // No file yet
+    while (getline(file, name, ',') &&
+           file >> power >> comma >> hours) {
+
+        appliances[applianceCount].loadFromFile(name, power, hours);
+        applianceCount++;
     }
-
-    file >> tariff;
-    file >> count;
-    file.ignore();
-
-    for (int i = 0; i < count; i++) {
-        string name;
-        double power, hours;
-
-        getline(file, name);
-        file >> power;
-        file >> hours;
-        file.ignore();
-
-        appliances[i].setLoadedData(name, power, hours);
-    }
-
     file.close();
+}
+
+// Search appliance
+void searchAppliance() {
+    cin.ignore();
+    string searchName;
+    cout << "Enter appliance name to search: ";
+    getline(cin, searchName);
+
+    bool found = false;
+    for (int i = 0; i < applianceCount; i++) {
+        if (appliances[i].getName() == searchName) {
+            appliances[i].display();
+            found = true;
+        }
+    }
+
+    if (!found)
+        cout << "Appliance not found.\n";
+}
+
+// Remove appliance
+void removeAppliance() {
+    cin.ignore();
+    string removeName;
+    cout << "Enter appliance name to remove: ";
+    getline(cin, removeName);
+
+    for (int i = 0; i < applianceCount; i++) {
+        if (appliances[i].getName() == removeName) {
+            for (int j = i; j < applianceCount - 1; j++) {
+                appliances[j] = appliances[j + 1];
+            }
+            applianceCount--;
+            cout << "Appliance removed successfully.\n";
+            saveToFile();
+            return;
+        }
+    }
+
+    cout << "Appliance not found.\n";
+}
+
+// Billing summary
+void billingSummary() {
+    if (applianceCount == 0) {
+        cout << "No appliances registered.\n";
+        return;
+    }
+
+    cout << "Enter tariff per kWh: ";
+    cin >> tariff;
+    while (tariff <= 0) {
+        cout << "Tariff must be positive: ";
+        cin >> tariff;
+    }
+
+    double totalEnergy = 0;
+    for (int i = 0; i < applianceCount; i++) {
+        totalEnergy += appliances[i].calculateMonthlyEnergy();
+    }
+
+    double totalCost = totalEnergy * tariff;
+
+    cout << "\n===== BILLING SUMMARY =====\n";
+    cout << "Total Monthly Energy: "
+         << totalEnergy << " kWh\n";
+    cout << "Tariff: " << tariff << endl;
+    cout << "Total Monthly Cost: "
+         << totalCost << endl;
+
+    ofstream bill("billing_summary.txt");
+    bill << "Total Monthly Energy: "
+         << totalEnergy << " kWh\n";
+    bill << "Tariff: " << tariff << endl;
+    bill << "Total Monthly Cost: "
+         << totalCost << endl;
+    bill.close();
 }
 
 int main() {
-   Appliance appliances[MAX];
-int count = 0;
-double tariff = 0;
-int choice = 0;
-   loadFromFile(appliances, count, tariff);
 
-if (tariff <= 0) {
-    cout << "Enter electricity tariff rate per kWh: ";
-    cin >> tariff;
-}
-while (tariff <= 0) {
-    cout << "Tariff must be greater than 0. Enter again: ";
-    cin >> tariff;
-}
+    loadFromFile();
+
+    int choice;
+
     do {
         cout << "\n=== Electrical Load Monitoring System ===\n";
         cout << "1. Register Appliance\n";
         cout << "2. View All Appliances\n";
-        cout << "3. View Total Monthly Bill\n";
-        cout << "4. System Status\n";
-        cout << "5. Remove Appliance\n";
+        cout << "3. Search Appliance\n";
+        cout << "4. Remove Appliance\n";
+        cout << "5. Billing Summary\n";
         cout << "0. Exit\n";
         cout << "Enter choice: ";
         cin >> choice;
-        
+
         switch (choice) {
-            case 1:
-                if (count < MAX) {
-                    appliances[count].setAppliance();
-                    count++;
-                    cout << "Appliance registered successfully!\n";
-                } else {
-                    cout << "Appliance list is full!\n";
-                }
-                break;
 
-            case 2:
-                if (count == 0) {
-                    cout << "No appliances registered yet.\n";
-                } else {
-                   for (int i = 0; i < count; i++) {
-    cout << "Appliance #" << i + 1 << endl;
-    appliances[i].displayAppliance(tariff);
-}
-                }
-                break;
-
-            case 3:
-                if (count == 0) {
-                    cout << "No appliances registered yet.\n";
-                } else {
-                    double totalMonthlyEnergy = 0;
-                    double totalBill = 0;
-
-                    for (int i = 0; i < count; i++) {
-                        totalMonthlyEnergy += appliances[i].calculateMonthlyEnergy();
-                        totalBill += appliances[i].calculateMonthlyCost(tariff);
-                    }
-
-                    cout << "Total Monthly Energy: "
-                         << totalMonthlyEnergy << " kWh\n";
-
-                    cout << "Estimated Monthly Electricity Bill: "
-                         << totalBill << endl;
-                }
-                break;
-
-            case 4:
-                if (count == 0) {
-                    cout << "System Status: No appliances registered.\n";
-                } else {
-                    cout << "System Status: "
-                         << count << " appliance(s) registered.\n";
-                }
-                break;
-
-                case 5:
-    if (count == 0) {
-        cout << "No appliances to remove.\n";
-    } else {
-        cout << "Enter appliance number to remove (1 - " << count << "): ";
-        int removeIndex;
-        cin >> removeIndex;
-
-        if (removeIndex < 1 || removeIndex > count) {
-            cout << "Invalid appliance number.\n";
-        } else {
-            // Shift appliances left
-            for (int i = removeIndex - 1; i < count - 1; i++) {
-                appliances[i] = appliances[i + 1];
+        case 1:
+            if (applianceCount < MAX) {
+                appliances[applianceCount].setAppliance();
+                applianceCount++;
+                saveToFile();
+                cout << "Appliance added successfully.\n";
+            } else {
+                cout << "Storage full.\n";
             }
+            break;
 
-            count--;
-            cout << "Appliance removed successfully.\n";
+        case 2:
+            if (applianceCount == 0)
+                cout << "No appliances registered.\n";
+            else
+                for (int i = 0; i < applianceCount; i++)
+                    appliances[i].display();
+            break;
+
+        case 3:
+            searchAppliance();
+            break;
+
+        case 4:
+            removeAppliance();
+            break;
+
+        case 5:
+            billingSummary();
+            break;
+
+        case 0:
+            cout << "Exiting program...\n";
+            break;
+
+        default:
+            cout << "Invalid choice.\n";
         }
-    }
-    break;
 
-            case 0:
-            saveToFile(appliances, count, tariff);
-                cout << "Exiting program...\n";
-                break;
-
-            default:
-                cout << "Invalid choice! Try again.\n";
-        }
     } while (choice != 0);
-    
+
     return 0;
 }
